@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalStorageState } from "./useLocalStorageState";
-import { useKey } from "./useKey";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -116,12 +115,18 @@ function Logo() {
 function SearchBox({ query, setQuery }) {
   const inputEl = useRef(null);
 
-  // This is a custom event handle function. To see full code syntax, go to the imported file (useKey.js)
-  useKey("Enter", function () {
-    if (document.activeElement === inputEl.current) return;
-    inputEl.current.focus();
-    setQuery("");
-  });
+  useEffect(() => {
+    const callBack = function (e) {
+      if (document.activeElement === inputEl.current) return;
+      if (e.key === "Enter") {
+        inputEl.current.focus();
+        setQuery("");
+      }
+    };
+
+    document.addEventListener("keydown", callBack);
+    return () => document.removeEventListener("keydown", callBack);
+  }, [setQuery]);
 
   return (
     <input
@@ -356,8 +361,17 @@ function SelectedMovie({
     };
   }, [title]);
 
-  // This is a custom event handle function. To see full code syntax, go to the imported file (useKey.js)
-  useKey("Escape", onCloseDetails);
+  useEffect(() => {
+    const callBack = (e) => {
+      if (e.key === "Escape") onCloseDetails();
+    };
+
+    document.addEventListener("keydown", callBack);
+
+    return () => {
+      document.removeEventListener("keydown", callBack);
+    };
+  }, [onCloseDetails]);
 
   return (
     <div className="details">
